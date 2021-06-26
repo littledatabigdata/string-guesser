@@ -1,7 +1,7 @@
 # string-guesser
 
 ## Install
-Either clone this repo, or `npm install @littledatabigdata/string-guesser`
+Either clone this repo, or `npm install @blookvoodow/string-guesser`
 
 ## Usage
 `compare` Takes 2 strings, and returns a similarity score between 0 and 1
