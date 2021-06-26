@@ -1,6 +1,5 @@
 
 export function hammingDist(a: string, b: string): number {
-    if(typeof a != "string" || typeof b != "string") throw 'arguments are not strings'
 
     let dist = 0;
     const minLen = Math.min(a.length, b.length)
@@ -54,8 +53,6 @@ function ngram(a: string, b: string, q = 2): Array<string> {
 // sum of absolute differences between
 // contiguous N gram vectors of two strings
 export function qgram(a: string, b: string, q: number = 2): number {
-    if(typeof a != "string" || typeof b != "string") throw 'arguments are not strings'
-
     let dist = 0;
     let vectors = ngram(a, b, q)
 
@@ -83,14 +80,14 @@ export function cosine(a: string, b: string, q: number = 2): number {
     let numerator = dot(aVec, bVec)
     let denom = Math.sqrt(dot(aVec, aVec)) * Math.sqrt(dot(bVec, bVec))
 
-    return 1 - numerator/denom
+    return numerator/denom
 }
 
 export function jaccard(a: string, b: string, q: number = 2): number {
     let vectors = ngram(a, b, q)
     let shared = vectors.filter(v => a.includes(v) && b.includes(v))
 
-    return 1 - shared.length / vectors.length
+    return shared.length / vectors.length
 }
 
 export function jaroWinker(a: string, b: string, p: number = 0.1): number {
@@ -122,5 +119,5 @@ export function jaroWinker(a: string, b: string, p: number = 0.1): number {
         if(l >= 4) break;
     }
 
-    return 1 - (dist(a.length, b.length, m, t) * (1 - l * p) + l * p)
+    return dist(a.length, b.length, m, t) * (1 - l * p) + l * p
 }
