@@ -1,16 +1,7 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.jaroWinker = exports.jaccard = exports.cosine = exports.qgram = exports.levenshtein = exports.hammingDist = void 0;
-function hammingDist(a, b) {
-    var dist = 0;
-    var minLen = Math.min(a.length, b.length);
-    for (var i = 0; i < minLen; i++) {
-        if (a[i] === b[i])
-            dist++;
-    }
-    return dist;
-}
-exports.hammingDist = hammingDist;
+'use strict';
+
+Object.defineProperty(exports, '__esModule', { value: true });
+
 // edit distance
 function levenshtein(a, b) {
     var tmp;
@@ -39,7 +30,6 @@ function levenshtein(a, b) {
     }
     return dist;
 }
-exports.levenshtein = levenshtein;
 // n-gram vector strings between two strings
 function ngram(a, b, q) {
     if (q === void 0) { q = 2; }
@@ -52,20 +42,6 @@ function ngram(a, b, q) {
     }
     return Array.from(new Set(vectors));
 }
-// sum of absolute differences between
-// contiguous N gram vectors of two strings
-function qgram(a, b, q) {
-    if (q === void 0) { q = 2; }
-    var dist = 0;
-    var vectors = ngram(a, b, q);
-    vectors.forEach(function (vector) {
-        if (!a.includes(vector) || !b.includes(vector)) {
-            dist++;
-        }
-    });
-    return dist;
-}
-exports.qgram = qgram;
 // cosine similarity
 function cosine(a, b, q) {
     if (q === void 0) { q = 2; }
@@ -81,14 +57,12 @@ function cosine(a, b, q) {
     var denom = Math.sqrt(dot(aVec, aVec)) * Math.sqrt(dot(bVec, bVec));
     return numerator / denom;
 }
-exports.cosine = cosine;
 function jaccard(a, b, q) {
     if (q === void 0) { q = 2; }
     var vectors = ngram(a, b, q);
     var shared = vectors.filter(function (v) { return a.includes(v) && b.includes(v); });
     return shared.length / vectors.length;
 }
-exports.jaccard = jaccard;
 function jaroWinker(a, b, p) {
     if (p === void 0) { p = 0.1; }
     var dist = function (al, bl, m, t) {
@@ -122,4 +96,46 @@ function jaroWinker(a, b, p) {
     }
     return dist(a.length, b.length, m, t) * (1 - l * p) + l * p;
 }
-exports.jaroWinker = jaroWinker;
+
+// returns similarity 0-1
+function compare(a, b) {
+    if (!a.length || !b.length)
+        return 0;
+    var jw = function (q) { return function () { return jaroWinker(a, b, q); }; };
+    // weighting for all the comparers
+    // tweak this, default is every comparer is treated equally
+    var weight = [0.25, 0.25, 0.25, 0.25];
+    var func = [cosine, jaccard, jw(0.1), jw(0.2)];
+    var res = func.map(function (fun) { return fun.apply(null, [a, b]); })
+        .map(function (x, i) { return x * weight[i]; })
+        .reduce(function (x, acc) { return x + acc; }, 0);
+    return res;
+}
+function compareList(a, b, threshold) {
+    if (threshold === void 0) { threshold = 0.75; }
+    a = a.toLocaleLowerCase();
+    b = b.map(function (x) { return x.toLocaleLowerCase(); });
+    if (typeof a != "string")
+        throw 'arguments are not strings';
+    var tuple = [null, 0];
+    if (!a.length || !b.length)
+        return tuple;
+    var confidence = b.map(function (s) {
+        return {
+            name: s,
+            score: compare(a, s)
+        };
+    });
+    confidence = confidence.sort(function (a, b) { return b.score - a.score; });
+    console.log(confidence);
+    for (var i = 0; i < confidence.length; i++) {
+        if (confidence[i].score >= threshold) {
+            tuple = [confidence[i].name, confidence[i].score];
+            break;
+        }
+    }
+    return tuple;
+}
+
+exports.compare = compare;
+exports.compareList = compareList;
